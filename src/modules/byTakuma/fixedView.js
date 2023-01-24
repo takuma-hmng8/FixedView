@@ -13,12 +13,20 @@ export const fixedView = () => {
    const VIEWTARGET = document.getElementById("js_fixedView");
    const SCENES = [...VIEWTARGET.getElementsByClassName("js_scene")];
    const BUTTONS = [...VIEWTARGET.getElementsByClassName("js_button")];
-   //シーンの高さ
-   const SCENESHEIGHT = window.innerHeight;
-   const THRESHOLD = SCENESHEIGHT * 1;
-   SCENES.forEach((element) => {
-      element.setAttribute("style", `height:${SCENESHEIGHT}px;`);
-   });
+
+   /*===============================================
+	シーンの高さを設定する
+	===============================================*/
+   let SCENESHEIGHT = window.innerHeight;
+   let THRESHOLD = SCENESHEIGHT * 1;
+   const setSceneHeight = () => {
+      SCENESHEIGHT = window.innerHeight;
+      THRESHOLD = SCENESHEIGHT * 1;
+      SCENES.forEach((element) => {
+         element.setAttribute("style", `height:${SCENESHEIGHT}px;`);
+      });
+   };
+   setSceneHeight();
 
    /*===============================================
 	utils
@@ -606,4 +614,19 @@ export const fixedView = () => {
 
    handleScrollEvent();
    document.addEventListener("scroll", handleScrollEvent);
+
+   /*===============================================
+	resize対応
+	===============================================*/
+   //リサイズを監視
+   let resizeTimeOutID = 0;
+   window.addEventListener("resize", () => {
+      //リサイズ動作を終えてから1秒後に発火
+      clearTimeout(resizeTimeOutID);
+      resizeTimeOutID = setTimeout(() => {
+         console.log("resize");
+         setSceneHeight();
+         handleScrollEvent();
+      }, 1000);
+   });
 };
