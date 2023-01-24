@@ -51,7 +51,7 @@ export const fixedView = () => {
 	シーンの切り替え
 	********************/
    const INVIEWDURATION = 0.5;
-   const sceneSwitch = (
+   const sceneSwitch = async (
       target,
       {
          isInviewAnim = false,
@@ -85,24 +85,161 @@ export const fixedView = () => {
       }
 
       //invewアニメーションの場合はホイールイベントを、duration分、preventさせる
-      if (isInviewAnim) {
-         wheelState.isInviewPrevent = true;
-         gsap.to(window, {
-            duration: INVIEWDURATION,
+      return new Promise((resolve) => {
+         if (isInviewAnim) {
+            wheelState.isInviewPrevent = true;
+            gsap.to(window, {
+               duration: INVIEWDURATION,
+               ease: "power3.out",
+               scrollTo: scrollToPos,
+               onComplete: () => {
+                  wheelState.isInviewPrevent = false;
+                  resolve();
+               },
+            });
+         } else {
+            window.scrollTo({ top: scrollToPos });
+            resolve();
+         }
+      });
+   };
+
+   /*===============================================
+	シーンの切り替えアニメーション
+	===============================================*/
+   /********************
+	ホイールに応じた慣性アニメーションさせる
+	********************/
+   const inertiaAnimation = (target, scrollVol) => {
+      const moveY = scrollVol * -0.1;
+      //慣性アニメーション
+      gsap.context(() => {
+         gsap.to(".js_animTarget", {
+            y: `+=${moveY}`,
+            duration: 0.3,
             ease: "power3.out",
-            scrollTo: scrollToPos,
-            onComplete: () => {
-               wheelState.isInviewPrevent = false;
+            stagger: {
+               each: 0.01,
             },
          });
-      } else {
-         window.scrollTo({ top: scrollToPos });
-      }
+      }, target);
+      //一定時間が経過すると元に戻るアニメーション
+      clearTimeout(wheelState.inertiaTimeOutID);
+      wheelState.inertiaTimeOutID = setTimeout(() => {
+         if (!wheelState.isInviewPrevent) {
+            //inviewが発火してる間は発火させない
+            gsap.context(() => {
+               gsap.to(".js_animTarget", {
+                  y: 0,
+                  duration: 0.4,
+                  ease: "back.out(3)",
+                  stagger: {
+                     each: 0.01,
+                  },
+               });
+            }, target);
+         }
+      }, wheelState.transitionCanceDur);
    };
    /********************
-	シーンの切り替えアニメーション
+	ページトランジションアニメーション
 	********************/
-   // const sceneTransition = () => {};
+   const sceneTransitionAnimation = async ({
+      currentTarget,
+      nextTarget,
+      isOut,
+      isForward,
+   }) => {
+      let moveVol = 12;
+      let moveY = 0;
+      let setY = 0;
+      const DURATIONVAL = 0.6;
+
+      if (isForward) {
+         moveY = `${moveVol * -1}rem`;
+         setY = `${moveVol}rem`;
+      } else {
+         moveY = `${moveVol}rem`;
+         setY = `${moveVol * -1}rem`;
+      }
+
+      return new Promise((resolve) => {
+         if (isOut) {
+            /********************
+				out
+				********************/
+            wheelState.isInviewPrevent = true;
+            //次の要素を操作しておく
+            gsap.context(() => {
+               gsap.set(".js_animTarget", {
+                  y: setY,
+                  opacity: 0,
+               });
+            }, nextTarget);
+            //今表示されてるのをフェードアウトさせる
+            gsap.context(() => {
+               gsap.to(".js_animTarget", {
+                  y: moveY,
+                  opacity: 0,
+                  duration: DURATIONVAL,
+                  ease: "power3.out",
+                  stagger: {
+                     each: 0.01,
+                  },
+                  onComplete: () => {
+                     resolve();
+                  },
+               });
+            }, currentTarget);
+         } else {
+            /********************
+				in
+				********************/
+            gsap.context(() => {
+               gsap.to(".js_animTarget", {
+                  y: "0",
+                  opacity: 1,
+                  duration: DURATIONVAL,
+                  ease: "power3.out",
+                  stagger: {
+                     each: 0.01,
+                  },
+                  onComplete: () => {
+                     wheelState.isInviewPrevent = false;
+                     resolve();
+                  },
+               });
+            }, nextTarget);
+         }
+      });
+   };
+
+   /*===============================================
+	シーンの切り替え呼び出し用関数
+	===============================================*/
+
+   const sceneTransitonCallBack = async ({
+      currentTarget,
+      nextTarget,
+      isForward,
+      isWheel,
+   }) => {
+      await sceneTransitionAnimation({
+         currentTarget: currentTarget,
+         nextTarget: nextTarget,
+         isOut: true,
+         isForward: isForward,
+      });
+      await sceneSwitch(nextTarget, {
+         isWheelTrigger: isWheel,
+      });
+      await sceneTransitionAnimation({
+         currentTarget: "",
+         nextTarget: nextTarget,
+         isOut: false,
+         isForward: isForward,
+      });
+   };
 
    /*===============================================
 	ホイールイベント（シーンの遷移イベント）
@@ -114,12 +251,17 @@ export const fixedView = () => {
       isWheelActive: false,
       scenePhase: "0",
       scrollVol: 0,
+      scrollVolTimeOutID: 0,
       isInviewPrevent: false,
       isPrevent: false,
-      preventTime: 1500,
-      threshold: 300,
+      preventTime: 500,
+      threshold: 1200,
+      ticking: false,
+      inertiaTimeOutID: 0,
+      transitionCanceDur: 300,
    };
 
+   // シーントランジション後preventTime間はホイールイベントが発火しないようにする
    const wheelPreventSwitch = () => {
       wheelState.scrollVol = 0;
       wheelState.isPrevent = true;
@@ -129,23 +271,26 @@ export const fixedView = () => {
    };
 
    //ホイールイベント
-   function handleWheelEvent(e) {
-      // スクロールを無効化
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      wheelState.isWheeling = true;
-      if (scrollState.isScrolling === true) {
-         //scrollイベント中は呼び出さない
-         return;
-      }
-
+   const wheelControl = (e) => {
       if (
          wheelState.isInviewPrevent === false &&
          wheelState.isPrevent === false
       ) {
-         //閾値を超えたら次のシーンに移動する
+         //ホイール量を取得
          wheelState.scrollVol += e.deltaY;
+         //一定時間を超えるとscrollvolを0に戻す（加算されないようにする）
+         clearTimeout(wheelState.scrollVolTimeOutID);
+         wheelState.scrollVolTimeOutID = setTimeout(() => {
+            console.log("vol.も0に戻す");
+            wheelState.scrollVol = 0;
+         }, wheelState.transitionCanceDur);
+         /********************
+			スクロールに量応じて慣性アニメーションを加える
+			********************/
+         inertiaAnimation(SCENES[wheelState.scenePhase], e.deltaY);
+         /********************
+			閾値を超えたら次のシーンに移動する
+			********************/
          if (wheelState.scrollVol > wheelState.threshold) {
             //順向きのシーントランジション
             wheelPreventSwitch();
@@ -156,9 +301,11 @@ export const fixedView = () => {
                   isEnd: true,
                });
             } else {
-               sceneSwitch(SCENES[wheelState.scenePhase + 1], {
-                  isInviewAnim: false,
-                  isWheelTrigger: true,
+               sceneTransitonCallBack({
+                  currentTarget: SCENES[wheelState.scenePhase],
+                  nextTarget: SCENES[wheelState.scenePhase + 1],
+                  isForward: true,
+                  isWheel: true,
                });
             }
          } else if (wheelState.scrollVol < wheelState.threshold * -1) {
@@ -171,14 +318,38 @@ export const fixedView = () => {
                   isFirst: true,
                });
             } else {
-               sceneSwitch(SCENES[wheelState.scenePhase - 1], {
-                  isInviewAnim: false,
-                  isWheelTrigger: true,
+               sceneTransitonCallBack({
+                  currentTarget: SCENES[wheelState.scenePhase],
+                  nextTarget: SCENES[wheelState.scenePhase - 1],
+                  isForward: false,
+                  isWheel: true,
                });
             }
          }
       }
+   };
 
+   /********************
+	ホイールイベントハンドラ
+	********************/
+   function handleWheelEvent(e) {
+      // スクロールを無効化
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      //scrollイベント中は呼び出さない
+      wheelState.isWheeling = true;
+      if (scrollState.isScrolling === true) {
+         return;
+      }
+      //rAF
+      if (!wheelState.ticking) {
+         window.requestAnimationFrame(() => {
+            wheelControl(e);
+            wheelState.ticking = false;
+         });
+         wheelState.ticking = true;
+      }
       wheelState.isWheeling = false;
    }
 
@@ -213,6 +384,10 @@ export const fixedView = () => {
       isScrolling: false,
       viewTop: "",
       viewBottom: "",
+      timeOutID: 0,
+      //位置修正を発火させるまでのinterval
+      correctPosInterval: 300,
+      ticking: false,
    };
 
    //交差してるかどうかの判定
@@ -226,19 +401,33 @@ export const fixedView = () => {
 
    //スクロールイベントが終わった時に位置がズレてる場合に正しい位置に修正する
    const correctPos = () => {
-      //isWheelActiveがtrueかつ、の時に発火
+      //isWheelActiveがtrueかつInviewアニメーション時間外の時に発火
       if (!wheelState.isWheelActive || wheelState.isInviewPrevent) {
          return;
       }
-      console.log("位置修正");
+      //スクロールの発生時に連続で呼ばれるので最後のスクロールが終わったタイミングで呼びたい
+      clearTimeout(scrollState.timeOutID);
+      scrollState.timeOutID = setTimeout(() => {
+         SCENES.forEach((element, index) => {
+            if (element.dataset.view === "1") {
+               //現在のスクロール位置
+               const scrollY =
+                  window.pageYOffset || document.documentElement.scrollTop;
+               //index番目の位置
+               const correctY = getTargetPos(element, { position: "top" });
+               //比較して合ってなかったら発火
+               if (scrollY !== correctY) {
+                  sceneSwitch(SCENES[index], { isInviewAnim: true });
+                  console.log("ずれてるよ");
+               }
+               return;
+            }
+         });
+      }, scrollState.correctPosInterval);
    };
 
-   const handleScrollEvent = () => {
-      scrollState.isScrolling = true;
-      if (wheelState.isWheeling === true) {
-         //wheelイベント中は呼び出さない
-         return;
-      }
+   //位置を判定して状態のdatasetと、sceneのスイッチを行う。スクロールバーの操作の対策もかねる
+   const scrollControl = () => {
       scrollState.viewTop =
          window.pageYOffset || document.documentElement.scrollTop;
       scrollState.viewBottom = scrollState.viewTop + SCENESHEIGHT;
@@ -292,7 +481,12 @@ export const fixedView = () => {
 					順向きscrollでinview
 					********************/
                if (!wheelState.isWheelTrigger) {
-                  sceneSwitch(SCENES[index], { isInviewAnim: false });
+                  sceneTransitonCallBack({
+                     currentTarget: SCENES[index - 1],
+                     nextTarget: SCENES[index],
+                     isForward: true,
+                     isWheel: false,
+                  });
                }
                wheelState.isWheelTrigger = false;
             } else {
@@ -300,7 +494,12 @@ export const fixedView = () => {
 					逆向きscrollでinview
 					********************/
                if (!wheelState.isWheelTrigger) {
-                  sceneSwitch(SCENES[index], { isInviewAnim: false });
+                  sceneTransitonCallBack({
+                     currentTarget: SCENES[index - 1],
+                     nextTarget: SCENES[index],
+                     isForward: false,
+                     isWheel: false,
+                  });
                }
                wheelState.isWheelTrigger = false;
             }
@@ -311,6 +510,10 @@ export const fixedView = () => {
 					逆向きscrollで固定解除
 					********************/
                if (wheelState.isWheelActive === true) {
+                  sceneTransitionAnimation({
+                     nextTarget: SCENES[index],
+                     isOut: false,
+                  });
                   //ホイールイベント解除
                   addWheelEvent(false);
                }
@@ -319,6 +522,10 @@ export const fixedView = () => {
 					順向きscrollで固定解除
 					********************/
                if (wheelState.isWheelActive === true) {
+                  sceneTransitionAnimation({
+                     nextTarget: SCENES[index],
+                     isOut: false,
+                  });
                   //ホイールイベント解除
                   addWheelEvent(false);
                }
@@ -328,10 +535,27 @@ export const fixedView = () => {
             element.dataset.view = "0";
          }
       });
+   };
 
+   /********************
+	スクロールイベントハンドラ
+	********************/
+   const handleScrollEvent = () => {
+      //wheelイベント中は呼び出さない
+      scrollState.isScrolling = true;
+      if (wheelState.isWheeling === true) {
+         return;
+      }
+      //rAF
+      if (!scrollState.ticking) {
+         window.requestAnimationFrame(() => {
+            scrollControl();
+            scrollState.ticking = false;
+         });
+         scrollState.ticking = true;
+      }
       //位置修正
       correctPos();
-
       scrollState.isScrolling = false;
    };
 

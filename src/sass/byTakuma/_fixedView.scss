@@ -39,7 +39,7 @@ fixedView
 .fixedView_scene {
    &[data-view="0"] {
       .fixedView_inner {
-         visibility: hidden;
+         // visibility: hidden;
       }
    }
 }
