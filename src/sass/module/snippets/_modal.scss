@@ -1,0 +1,134 @@
+@use "../../global"as *;
+
+/*===============================================
+modal
+===============================================*/
+.bl_modal {
+    &_overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        width: 100%;
+        height: 100%;
+    }
+
+    &_container {
+        background-color: #fff;
+        padding: $spacing-6 $spacing-1;
+        max-width: calc(100% - $spacing-3);
+        max-height: 80%;
+        width: 640px;
+        overflow-y: auto;
+        box-sizing: border-box;
+
+        @include mq(sm) {
+            padding: $spacing-5 $spacing-1 $spacing-4;
+        }
+    }
+
+    &_close {
+        border: 0;
+        width: $spacing-2;
+        height: $spacing-2;
+        position: absolute;
+        top: $spacing-3;
+        right: $spacing-2;
+        @include bg_img_contain;
+        background-color: red;
+
+        @include hover {
+            transform: scale(0.9);
+        }
+    }
+
+    &_cont {
+        width: 478px;
+        max-width: 100%;
+        margin: 0 auto;
+
+        &_title {
+            font-size: $fontsize-3;
+            font-weight: bold;
+        }
+    }
+}
+
+
+/**************************\
+  Demo Animation Style
+\**************************/
+@keyframes mmfadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes mmfadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes mmslideIn {
+    from {
+        transform: translateY(15%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+@keyframes mmslideOut {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(-10%);
+    }
+}
+
+.micromodal-slide {
+    display: none;
+}
+
+.micromodal-slide.is-open {
+    display: block;
+}
+
+.micromodal-slide[aria-hidden="false"] .bl_modal_overlay {
+    animation: mmfadeIn .3s cubic-bezier(0.0, 0.0, 0.2, 1);
+}
+
+.micromodal-slide[aria-hidden="false"] .bl_modal_container {
+    animation: mmslideIn .3s cubic-bezier(0, 0, .2, 1);
+}
+
+.micromodal-slide[aria-hidden="true"] .bl_modal_overlay {
+    animation: mmfadeOut .3s cubic-bezier(0.0, 0.0, 0.2, 1);
+}
+
+.micromodal-slide[aria-hidden="true"] .bl_modal_container {
+    animation: mmslideOut .3s cubic-bezier(0, 0, .2, 1);
+}
+
+.micromodal-slide .bl_modal_container,
+.micromodal-slide .bl_modal_overlay {
+    will-change: transform;
+}

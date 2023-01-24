@@ -1,0 +1,40 @@
+@use "../global"as *;
+
+/*===============================================
+twoclumn
+===============================================*/
+.ly_twoColumn {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    &__reverse {
+        flex-direction: row-reverse;
+    }
+
+    @include mq(md) {
+        display: block;
+
+        >*:last-child {
+            margin-top: $spacing-8;
+        }
+    }
+
+    &_sideArea {
+        width: 320px;
+        flex-shrink: 0;
+
+        @include mq(md) {
+            width: 100%;
+        }
+    }
+
+    &_mainArea {
+        width: 100%;
+        padding-left: 40px;
+
+        @include mq(md) {
+            padding-left: 0;
+        }
+    }
+}

@@ -1,0 +1,38 @@
+@use "../../global"as *;
+
+/*===============================================
+breadcrumb
+===============================================*/
+.bl_breadcrumb {
+    -ms-overflow-style: none;
+    overflow-x: auto;
+    padding: $spacing-half 0;
+    scrollbar-width: none;
+    white-space: nowrap;
+    width: 100%;
+
+    .ly_inner {
+        max-width: 100%;
+    }
+
+    ul {
+        align-items: center;
+        display: flex;
+
+        li {
+            a {
+                color: #bebebe;
+                font-size: 14px;
+                padding: 0 12px;
+            }
+
+            &:not(:last-child) {
+                border-right: 1px solid #bebebe;
+            }
+        }
+    }
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}

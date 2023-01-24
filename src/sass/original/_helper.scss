@@ -1,0 +1,86 @@
+@use "../global"as *;
+
+/*===============================================
+device display
+===============================================*/
+.lg_only {
+    display: block;
+
+    @include mq(sm) {
+        display: none;
+    }
+}
+
+.md_only {
+    display: none;
+
+    @include mq(md) {
+        display: block;
+    }
+}
+
+.sm_only {
+    display: none;
+
+    @include mq(sm) {
+        display: block;
+    }
+}
+
+/*===============================================
+asterisk
+===============================================*/
+.hp_asterisk {
+    position: relative;
+
+    &:after {
+        color: red;
+        content: "*";
+        line-height: 1;
+        @include absolute(0, auto, auto, -10px);
+    }
+}
+
+/*===============================================
+フォント
+===============================================*/
+.ff_eng {
+    font: {
+        family: $fontfamily-eng;
+    }
+}
+
+.fw_bold {
+    font: {
+        weight: 700;
+    }
+}
+
+/*===============================================
+color
+===============================================*/
+.hp_wht {
+    color: $color-wht;
+}
+
+/*===============================================
+iframe
+===============================================*/
+.hp_iframeWrapper {
+    width: 100%;
+    position: relative;
+
+    iframe {
+        @include absolute(0, 0, 0, 0);
+        width: 100%;
+        height: 100%;
+    }
+}
+
+.hp_iframeWrapper.ra_16-9 {
+    padding-top: $r-16-9;
+}
+
+.hp_iframeWrapper.ra_square {
+    padding-top: $r-square;
+}

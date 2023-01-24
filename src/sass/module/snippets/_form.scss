@@ -1,0 +1,743 @@
+@use "../../global"as *;
+
+/*===============================================
+variables
+===============================================*/
+// inputの背景色
+$formInputBg: #f7f7f7;
+//placeholderの色
+$placeholderColor:rgba(17, 17, 17, 0.4);
+//inputの高さ
+$formInputHeight: $spacing-5;
+//ラジオ・チェックボタンの大きさ
+$radioSize: 32px;
+$checkboxSize: 24px;
+
+/*===============================================
+formItem_group
+===============================================*/
+.bl_formItem {
+    &_group {
+        &:not(:first-of-type) {
+            margin-top: $spacing-2;
+
+            @include mq(sm) {
+                margin-top: $spacing-4;
+            }
+        }
+
+        &__flex {
+            display: flex;
+            align-items: center;
+
+            @include mq(md) {
+                display: block;
+            }
+
+            .bl_formItem_title {
+                flex-shrink: 0;
+                width: 260px;
+
+                @include mq(md) {
+                    width: 100%;
+                    margin-bottom: $spacing-half;
+                }
+            }
+        }
+
+        &__block {
+            display: block;
+
+            .bl_formItem_title {
+                margin-bottom: $spacing-1;
+
+                @include mq(md) {
+                    margin-bottom: $spacing-half;
+                }
+            }
+        }
+
+        p {
+            display: none;
+        }
+    }
+}
+
+
+/*===============================================
+formItem_title
+===============================================*/
+.bl_formItem {
+    &_title {
+        display: block;
+        position: relative;
+        font-weight: bold;
+        font-size: $fontsize-2;
+        line-height: $leading-tight;
+
+        @include hover {
+            +.bl_formItem_wrapper .bl_formInput {
+                border: 2px solid $color-bg;
+            }
+        }
+
+        .require {
+            display: inline-block;
+            margin-right: $spacing-half;
+            padding: 0 $spacing-half;
+            border-radius: 2px;
+            background-color: $color-bg;
+            color: #fff;
+            font-weight: bold;
+            font-size: $fontsize-1;
+            line-height: $spacing-2;
+        }
+    }
+}
+
+/*===============================================
+formItem_wrapper
+===============================================*/
+.bl_formItem {
+    &_wrapper {
+        display: block;
+        width: 100%;
+
+        &__flex {
+            display: flex;
+            align-items: flex-start;
+
+            @include mq(sm) {
+                justify-content: space-between;
+            }
+        }
+    }
+
+    &_name {
+        width: min(100%, 320px);
+
+        &:not(:last-child) {
+            margin-right: $spacing-1;
+        }
+    }
+
+    &_tel {
+        width: min(100%, 320px);
+    }
+
+    &_select {
+        width: min(100%, 400px);
+    }
+}
+
+/*===============================================
+formInput
+===============================================*/
+.bl_formInput {
+    @include placeholder($placeholderColor);
+
+    width: 100%;
+    height: $formInputHeight;
+    padding: 0 $spacing-2;
+    overflow: hidden;
+    border: 2px solid transparent;
+    background-color: $formInputBg;
+    font-size: 16px;
+    line-height: $formInputHeight;
+    vertical-align: middle;
+    cursor: pointer;
+
+    @include transition;
+    transition-property: border-color;
+
+    @include hover {
+        border: 2px solid $color-bg;
+    }
+
+    @include mq(sm) {
+        padding: 0 $spacing-half;
+    }
+
+    &:focus {
+        border: 2px solid $color-bg;
+        outline: 0;
+    }
+
+    &__select {
+        background-image: url(../images/element/icon/select.svg);
+        background-position: calc(100% - 24px) center;
+        background-size: 14px;
+        background-repeat: no-repeat;
+
+        @include mq(sm) {
+            background-position: calc(100% - 8px) center;
+            background-size: 10px;
+        }
+    }
+
+    &__textarea {
+        height: 240px;
+        padding: $spacing-1 $spacing-2;
+        line-height: $leading-snug;
+    }
+}
+
+
+/*===============================================
+ radio,
+ checkbox
+===============================================*/
+
+.bl_formInput {
+
+    &_radio_wrapper,
+    &_check_wrapper {
+        display: flex;
+
+        input[type="radio"],
+        input[type="checkbox"] {
+            opacity: 0;
+            position: absolute;
+            left: 100vw;
+            z-index: -9999;
+
+            //キーボード操作の時のfocusを当てる
+            &:focus-visible {
+                +.wpcf7-list-item-label:after {
+                    background-color: rgba($color-bg, 0.2);
+                }
+            }
+
+            @include hover {
+                +.wpcf7-list-item-label:after {
+                    background-color: rgba($color-bg, 0.2);
+                }
+            }
+        }
+
+        .wpcf7-list-item {
+            cursor: pointer;
+
+            &:not(:last-of-type) {
+                margin-right: $spacing-half;
+            }
+        }
+
+        label {
+            width: auto;
+            margin-right: 0;
+            margin-bottom: 0;
+            line-height: 1;
+
+            input[type="radio"]:checked+.wpcf7-list-item-label:before,
+            input[type="checkbox"]:checked+.wpcf7-list-item-label:before {
+                opacity: 1;
+            }
+
+            .wpcf7-list-item-label {
+                display: inline-block;
+                position: relative;
+                width: 100%;
+                padding: 0 $spacing-1 0 $spacing-4;
+                border: 1px solid transparent;
+                font-weight: bold;
+                font-size: $fontsize-2;
+            }
+
+            .wpcf7-list-item-label:before,
+            .wpcf7-list-item-label:after {
+                @include transition;
+                transition-property: background-color;
+
+                display: block;
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                content: "";
+            }
+
+            @include hover {
+                -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+            }
+        }
+    }
+
+    //ラジオボタン
+    &_radio_wrapper {
+        label {
+            .wpcf7-list-item-label {
+                line-height: $radioSize;
+
+                &:before {
+                    opacity: 0;
+                    left: 10px;
+                    z-index: 1;
+                    width: 12px;
+                    height: 12px;
+                    margin-top: 0;
+                    border-radius: 50%;
+                    background-color: $color-bg;
+                }
+
+                &:after {
+                    left: 0;
+                    z-index: 0;
+                    width: $radioSize;
+                    height: $radioSize;
+                    margin-top: 0;
+                    border: 1px solid $color-base;
+                    border-radius: 50%;
+                    background-color: $formInputBg;
+                }
+            }
+        }
+    }
+
+    //チェックボタン
+    &_check_wrapper {
+        label {
+            .wpcf7-list-item-label {
+                line-height: $checkboxSize;
+
+                &::before {
+                    opacity: 0;
+                    left: 6px;
+                    z-index: 1;
+                    width: 12px;
+                    height: 12px;
+                    margin-top: 0;
+                    border-radius: 2px;
+                    background-color: $color-bg;
+                }
+
+                &:after {
+                    left: 0;
+                    z-index: 0;
+                    width: $checkboxSize;
+                    height: $checkboxSize;
+                    margin-top: 0;
+                    border: 1px solid $color-base;
+                    border-radius: 2px;
+                    background-color: $formInputBg;
+                }
+            }
+        }
+    }
+}
+
+/*===============================================
+birthday
+===============================================*/
+.bl_formInput {
+    &_birthday_block {
+        width: 33.3333%;
+
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        @include mq(sm) {
+            // align-items: flex-end;
+        }
+
+        .wpcf7-form-control-wrap {
+            width: 100%;
+        }
+
+        &:not(:last-of-type) {
+            padding-right: 24px;
+
+            @include mq(sm) {
+                padding-right: 16px;
+            }
+        }
+    }
+
+    &_birthday_txt {
+        flex-shrink: 0;
+        margin-left: 10px;
+        font-weight: bold;
+        font-size: 14px;
+        line-height: $formInputHeight;
+
+        @include mq(sm) {
+            margin-left: 4px;
+            font-size: 12px;
+            // line-height: 1;
+        }
+    }
+}
+
+
+/*===============================================
+file
+===============================================*/
+.bl_formInput {
+    &_file_wrapper {
+        display: flex;
+        align-items: center;
+        position: relative;
+
+        input[type="file"] {
+            display: none;
+        }
+
+        button {
+            @include transition;
+            transition-property: background-color, color, border-color;
+
+            display: inline-block;
+            flex-shrink: 0;
+            width: 240px;
+            border-radius: $formInputHeight;
+            background-color: $color-bg;
+            color: #fff;
+            font-weight: bold;
+            font-size: $fontsize-1;
+            line-height: $formInputHeight;
+            text-align: center;
+            border: 2px solid transparent;
+            cursor: pointer;
+
+            @include mq(sm) {
+                width: 210px;
+            }
+
+            &:focus-visible {
+                background-color: #fff;
+                color: $color-bg;
+                border: 2px solid $color-bg;
+            }
+
+            @include hover {
+                background-color: #fff;
+                color: $color-bg;
+                border: 2px solid $color-bg;
+            }
+        }
+    }
+
+    &_fileName {
+        @include lineHeightCrop($leading-x-tight);
+
+        display: block;
+        width: 100%;
+        padding-left: $spacing-1;
+        color: $color-base;
+        font-size: 12px;
+        font-weight: bold;
+        line-height: $leading-x-tight;
+
+        @include mq(sm) {
+            font-size: 11px;
+        }
+
+        pointer-events: none;
+
+        &.is_fileset {
+            color: $color-bg;
+        }
+    }
+}
+
+/*===============================================
+submit
+===============================================*/
+.bl_submit {
+    width: 100%;
+
+    @include mq(sm) {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    //privacyt policy
+    &_privacypolicy {
+        margin-top: $spacing-4;
+
+        &_title {
+            margin-bottom: $spacing-2;
+            font-weight: bold;
+            font-size: 22px;
+            line-height: $leading-x-tight;
+            text-align: center;
+        }
+
+        &_cont {
+            height: 240px;
+            padding: $spacing-2;
+            overflow-y: auto;
+            border: 1px solid $color-base;
+            border-radius: 8px;
+
+            &_textBlock {
+                &:not(:first-of-type) {
+                    margin-top: $spacing-3;
+                }
+            }
+
+            &_title {
+                margin-bottom: $spacing-half;
+                font-weight: bold;
+                font-size: $fontsize-2;
+                line-height: $leading-x-tight;
+            }
+
+            &_text {
+                font-size: $fontsize-2;
+                line-height: $leading-tight;
+            }
+        }
+    }
+
+    #is_privacyCheckBool {
+        display: none;
+    }
+
+    //privacy check
+    .bl_privacyCheck_wrapper {
+        //variables
+        $buttonZoom: scale(1.1);
+        $privacyCheckSize: 32px;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: $spacing-2 0 $spacing-3;
+        font-weight: bold;
+        font-size: $fontsize-2;
+        text-align: left;
+
+        #js_privacyCheckBtn {
+            cursor: pointer;
+
+            .bl_privacyCheck {
+                pointer-events: none;
+            }
+
+            @include hover {
+                .bl_privacyCheck {
+                    span {
+                        transform: $buttonZoom;
+                    }
+                }
+            }
+        }
+
+        .bl_privacyCheck {
+            display: inline-block;
+            position: relative;
+            width: $privacyCheckSize;
+            height: $privacyCheckSize;
+            margin-right: $spacing-1;
+            text-align: center;
+            cursor: pointer;
+
+            span {
+                display: inline-block;
+                position: relative;
+                width: 100%;
+                height: 100%;
+                border: 1px solid $color-base;
+                border-radius: 50%;
+                background-color: $formInputBg;
+                vertical-align: middle;
+                transition: background-color .15s .2s transform .35s cubic-bezier(0.78, -1.22, 0.17, 1.89);
+                @include transition;
+                transition-property: transform;
+                transform-origin: center;
+
+                &:before {
+                    position: absolute;
+                    top: 15px;
+                    left: 8px;
+                    transform: rotate(45deg);
+                    width: 0;
+                    height: 2px;
+                    background: $color-bg;
+                    content: "";
+                    transform-origin: 0 0;
+                }
+
+                &:after {
+                    position: absolute;
+                    top: 22px;
+                    left: 12px;
+                    transform: rotate(305deg);
+                    width: 0;
+                    height: 2px;
+                    background: $color-bg;
+                    content: "";
+                    transform-origin: 0 0;
+                }
+            }
+
+            @include hover {
+                span {
+                    transform: $buttonZoom;
+                }
+            }
+
+            &.is_checked {
+                span {
+                    transform: $buttonZoom;
+                    background-color: $color-bg;
+                    border: 1px solid $color-bg;
+
+                    &:after {
+                        width: 15px;
+                        background: #fff;
+                        transition: width .15s ease .1s;
+                    }
+
+                    &:before {
+                        width: 8px;
+                        background: #fff;
+                        transition: width .15s ease;
+                    }
+                }
+            }
+        }
+
+        .bl_privacyCheck_txt {
+            @include lineHeightCrop($leading-snug);
+
+            display: inline-block;
+            line-height: $leading-snug;
+
+            .bl_privacyCheck_link {
+                display: inline;
+                text-decoration: underline;
+            }
+        }
+    }
+
+    //submit btn
+    .bl_submitBtn_wrapper {
+        position: relative;
+
+        .ajax-loader {
+            position: absolute;
+        }
+
+        .bl_submitBtn {
+            @include transition;
+
+            display: block;
+            width: min(100%, 320px);
+            margin: 0 auto;
+            border: 2px solid $color-bg;
+            background-color: $color-bg;
+            color: #fff;
+            font-weight: bold;
+            font-size: 20px;
+            line-height: $spacing-8;
+            text-align: center;
+            outline: 0;
+            cursor: pointer;
+            transition-property: background-color, border, color;
+
+            &:focus {
+                outline: 0;
+            }
+
+            &:focus-visible {
+                background-color: #fff;
+                color: $color-bg;
+            }
+
+            @include hover {
+                background-color: #fff;
+                color: $color-bg;
+            }
+        }
+
+        .bl_submitBtn[disabled] {
+            border: 2px solid $formInputBg;
+            background: none;
+            background-color: $formInputBg;
+            color: $placeholderColor;
+
+            pointer-events: none;
+        }
+    }
+}
+
+
+/*===============================================
+cf7 validation 
+===============================================*/
+.wpcf7-not-valid-tip {
+    display: block;
+    width: 100%;
+    margin-top: 8px !important;
+    padding: 5px;
+    border: 1px solid #e35b66 !important;
+    border-radius: 4px;
+    background-color: #fff0f1;
+    color: #cc3340;
+    font-size: 12px !important;
+    line-height: $leading-x-tight;
+    // display: none;
+}
+
+.wpcf7 form.invalid .wpcf7-response-output,
+.wpcf7 form.unaccepted .wpcf7-response-output {
+    display: block;
+    width: 560px;
+    max-width: 100%;
+    margin: 16px auto 0;
+    padding: 5px;
+    border: 1px solid #e35b66 !important;
+    border-radius: 4px;
+    background-color: #fff0f1;
+    color: #cc3340;
+    font-size: 12px !important;
+    text-align: center;
+}
+
+//送信成功
+div.wpcf7-mail-sent-ok {
+    background: #d5edda;
+    color: #185626;
+}
+
+//送信NG
+div.wpcf7-validation-errors,
+div.wpcf7-acceptance-missing {
+    border: 1px solid #cc3340;
+    background: #f7d7da;
+    color: #cc3340;
+}
+
+//送信失敗
+div.wpcf7-mail-sent-ng {
+    border: 1px solid #cc3340;
+    background: #fff0f1;
+    color: #cc3340;
+}
+
+//スパムなどで送信ブロックされた場合
+div.wpcf7-spam-blocked {
+    border: 1px solid #feedbd;
+    background: #fff2cf;
+    color: #846314;
+}
+
+.wpcf7-form-control-wrap.period {
+    width: 100%;
+}
+
+.bl_submitBtn_wrapper {
+    .ajax-loader {
+        position: absolute;
+    }
+
+    .wpcf7-spinner {
+        position: absolute;
+        right: 0;
+        bottom: -32px;
+        left: 0;
+        margin: auto;
+    }
+}

@@ -1,0 +1,245 @@
+@use "../../global"as *;
+
+/*===============================================
+single article
+===============================================*/
+.bl_article {
+    >*:first-child {
+        margin-top: 0 !important;
+    }
+
+    >*:last-child {
+        margin-bottom: 0 !important;
+    }
+
+    h1,
+    h2 {
+        font-size: $fontsize-4;
+        font-weight: bold;
+        line-height: $leading-snug;
+        margin: $spacing-7 0 $spacing-4;
+    }
+
+    h3 {
+        border-left: 4px solid #333;
+        font-size: $fontsize-3;
+        font-weight: bold;
+        @include lineHeightCrop($leading-snug);
+        line-height: $leading-snug;
+        margin: $spacing-4 0;
+        padding-left: 2rem;
+    }
+
+    h4,
+    h5,
+    h6 {
+        font-size: $fontsize-3;
+        font-weight: bold;
+        @include lineHeightCrop($leading-snug);
+        line-height: $leading-snug;
+        margin: $spacing-4 0;
+    }
+
+    p {
+        font-size: $fontsize-2;
+        @include lineHeightCrop($leading-loose);
+        line-height: $leading-loose;
+        margin: $spacing-3 0;
+
+        a {
+            color: $color-bg;
+            display: inline;
+            text-decoration: underline;
+        }
+    }
+
+    ul,
+    ol {
+        margin: $spacing-5 0;
+
+        li {
+            font-size: $fontsize-2;
+            line-height: $leading-relaxed;
+            list-style: none;
+            padding-left: $spacing-2;
+            position: relative;
+
+            a {
+                color: $color-bg;
+                display: inline;
+                text-decoration: underline;
+            }
+
+            &:not(:first-child) {
+                margin-top: $spacing-2;
+            }
+
+            &::after {
+                @include absolute(0, auto, 0, 0);
+            }
+
+        }
+    }
+
+    ul {
+        li {
+            &::after {
+                content: "";
+                width: $spacing-half;
+                height: $spacing-half;
+                background-color: $color-bg;
+                border-radius: 50%;
+                top: 11px;
+            }
+        }
+    }
+
+    ol {
+        li {
+            counter-increment: listNum;
+
+            &::after {
+                content: ""counter(listNum)"";
+                font-family: $fontfamily-eng;
+                font-size: $fontsize-2;
+                color: $color-bg;
+                font-weight: 500;
+            }
+        }
+    }
+
+    table {
+        border-collapse: collapse;
+        font-size: $fontsize-2;
+        margin-top: $spacing-5;
+        width: 100%;
+
+        td,
+        th {
+            border: 1px solid $color-bg;
+            line-height: $leading-normal;
+            padding: $spacing-1;
+            text-align: left;
+        }
+    }
+
+
+    strong {
+        font-weight: bold;
+    }
+
+    blockquote {
+        padding: $spacing-3;
+        background-color: #fff;
+        border-radius: 8px;
+        margin: $spacing-5 0;
+        position: relative;
+
+        @include mq(sm) {
+            padding: $spacing-3 $spacing-1;
+        }
+
+        &:before {
+            margin: auto;
+            top: -6px;
+            left: 13px;
+            content: "";
+            position: absolute;
+            width: 21px;
+            height: 19px;
+            @include bg_img_contain;
+            background-image: url(../images/element/icon/quote.svg);
+        }
+
+        p {
+            margin: 0;
+            font-weight: bold;
+        }
+
+        a {
+            display: inline;
+        }
+
+        cite {
+            font-size: $fontsize-2;
+            opacity: 0.48;
+            width: 100%;
+            text-align: right;
+            display: inline-block;
+            margin-top: $spacing-1;
+            line-height: $leading-relaxed;
+
+            a {
+                display: inline;
+
+                @include hover {
+                    color: $color-bg;
+                }
+            }
+        }
+    }
+
+    table {
+        border-collapse: collapse;
+        font-size: $fontsize-2;
+        margin-top: $spacing-5;
+        width: 100%;
+
+        td,
+        th {
+            border: 1px solid $color-bg;
+            line-height: $leading-normal;
+            padding: $spacing-1;
+            text-align: left;
+        }
+    }
+
+
+    p {
+        font-size: $fontsize-1;
+        @include lineHeightCrop($leading-loose);
+        line-height: $leading-loose;
+        margin: $spacing-4 0;
+
+        a {
+            color: $color-bg;
+            display: inline;
+            text-decoration: underline;
+        }
+    }
+
+    strong {
+        font-weight: bold;
+    }
+
+
+    img {
+        display: block;
+        margin: $spacing-4 0;
+    }
+
+    figure {
+        margin: $spacing-3 0;
+
+        img {
+            margin-bottom: 0;
+        }
+
+        figcaption {
+            font-size: $fontsize-1;
+            @include lineHeightCrop($leading-loose);
+            line-height: $leading-loose;
+            text-align: center;
+            margin-top: $spacing-1;
+        }
+    }
+
+    .wp-block-columns {
+        justify-content: space-between;
+        display: flex;
+
+        .wp-block-column {
+            width: calc(50% - #{$spacing-2});
+        }
+    }
+}

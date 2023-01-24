@@ -1,0 +1,62 @@
+@use "../global"as *;
+
+/*===============================================
+イントロ
+===============================================*/
+.pg_top_intro{
+	padding: 28rem 0 38rem;
+	position: relative;
+}
+.pg_top_intro_cont{
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	color: #fff;
+	position: relative;
+	z-index: 100;
+	.pg_top_intro_title{
+		font-size: 4rem;
+		font-weight: bold;
+		margin-right: $spacing-6;
+		flex-shrink: 0;
+		position: sticky;
+	}
+	.pg_top_intro_text{
+		font-size: 1.8rem;
+		font-weight: bold;
+		line-height: 3;
+		div{
+			opacity: 0.3;
+		}
+	}
+}
+
+.pg_top_intro_bg{
+	--jointOverWrap:19rem;
+	position: absolute;
+	width: 100%;
+	height: calc(100% + var(--jointOverWrap));
+	overflow: hidden;
+	top: calc(var(--jointOverWrap) * -1);
+	.introJoint,.introBg{
+		position: absolute;
+		max-width: initial;
+	}
+	.introJoint{
+		top: 0;
+		width: 130%;
+		left: -15%;
+		z-index: 10;
+	}
+	.introBg{
+		top: var(--jointOverWrap);
+		width: 100%;
+		height: calc(100% - var(--jointOverWrap));
+		left: 0;
+	}
+}
+
+//次のセクション
+.pg_top_hoge{
+	height: 1000px;
+}

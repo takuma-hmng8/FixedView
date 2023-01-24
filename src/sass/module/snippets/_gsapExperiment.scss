@@ -1,0 +1,38 @@
+@use "../../global"as *;
+
+/*===============================================
+gsapの練習
+===============================================*/
+
+#smooth-wrapper {
+    .box_wrapper {
+        .box {
+            width: 200px;
+            height: 300px;
+            background-color: red;
+
+            &:nth-child(2) {
+                margin-left: 20vw;
+                margin-top: 40vh;
+            }
+
+            &:nth-child(3) {
+                margin-left: 40vw;
+                margin-top: 40vh;
+            }
+        }
+    }
+
+    .box_wrapper2 {
+        margin-top: 40vh;
+        margin-bottom: 30vh;
+        display: flex;
+        justify-content: space-between;
+
+        .box {
+            width: 300px;
+            height: 300px;
+            background-color: blue;
+        }
+    }
+}

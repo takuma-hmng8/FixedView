@@ -1,0 +1,207 @@
+@use "../global"as *;
+
+:root {
+    /*===============================================
+    ①liquid design
+    ===============================================*/
+    --liquid-lgDesignRatio: calc(#{$lg-design-width} / 10);
+    --liquid-mdDesignRatio: calc(#{$md-design-width} / 10);
+    --liquid-smDesignRatio: calc(#{$sm-design-width} / 10);
+    --liquid-htmlroot: calc(calc(var(--vw, 1vw) * 100) / var(--liquid-lgDesignRatio));
+    --liquid-bodyroot: 1.6rem;
+
+    @include mq(md) {
+        --liquid-htmlroot: calc(calc(var(--vw, 1vw) * 100) / var(--liquid-mdDesignRatio));
+    }
+
+    @include mq(sm) {
+        --liquid-htmlroot: calc(calc(var(--vw, 1vw) * 100) / var(--liquid-smDesignRatio));
+    }
+
+    /*===============================================
+    ②solid design
+    ===============================================*/
+    --solid-root: 16px;
+
+    /*===============================================
+    ③mobilefirst design
+    ===============================================*/
+    --mobile-DesignWidth: #{$mobile-design-width};
+    --mobile-ContentsWidth: #{$mobile-design-width};
+    --mobile-ContentsRatio: var(--mobile-ContentsWidth) / var(--mobile-DesignWidth);
+    --mobile-root:min(16px * var(--mobile-ContentsRatio), 16 * 100 / var(--mobile-DesignWidth) * 1vw);
+
+    /*===============================================
+    headerHeight
+    ===============================================*/
+    --headerHeight: #{$spacing-8};
+
+    @include mq(sm) {
+        --headerHeight: #{$spacing-8};
+    }
+}
+
+body {
+    background: {
+        color: $color-wht;
+    }
+
+    color: $color-base;
+
+    font: {
+        family: $fontfamily-base;
+        size: $fontsize-1;
+        style: normal;
+        weight: normal;
+    }
+
+    letter-spacing: $letter-spacing-base;
+    line-height: $leading-tight;
+
+}
+
+html {
+
+    //liquid
+    @if $designRoot==1 {
+        font-size: var(--liquid-htmlroot);
+
+        body {
+            font-size: var(--liquid-bodyroot);
+        }
+    }
+
+    //solid
+    @else if $designRoot==2 {
+        font-size: var(--solid-root);
+    }
+
+    //mobile
+    @else if $designRoot==3 {
+        font-size: var(--mobile-root);
+    }
+}
+
+/*===============================================
+ボタン周り
+===============================================*/
+a,
+button {
+    border: none;
+    cursor: pointer;
+    outline: none;
+    text-decoration: none;
+    pointer-events: auto;
+    z-index: 100;
+    transition: 0s;
+    display: block;
+
+    &:link,
+    &:visited {
+        color: inherit;
+    }
+
+    &:hover,
+    &:active {
+        color: inherit;
+        cursor: pointer;
+    }
+
+    /* タブ移動時 */
+    &:focus-visible {
+        outline: -webkit-focus-ring-color auto 1px;
+    }
+
+    /* マウスクリック時 */
+    &:focus:not(:fous-visible) {
+        outline: none;
+    }
+
+    //スマホのとき一瞬うつるタッチハイライトを消す
+    @media (hover: none) {
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    }
+
+    img {
+        border: none;
+    }
+}
+
+//DOMの読み込みでtransitionを有効にする
+.is_DOMloaded {
+
+    a,
+    button {
+        @include transition;
+        transition-property: background-color,
+            opacity,
+            fill,
+            color,
+            box-shadow,
+            transform,
+            border-color;
+    }
+}
+
+
+/*===============================================
+reset
+===============================================*/
+
+* {
+    //Safari clamp関数対策
+    min-height: 0vw;
+}
+
+html {
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    padding: env(safe-area-inset-top, 20px) env(safe-area-inset-right, 20px) env(safe-area-inset-bottom, 20px) env(safe-area-inset-left, 20px);
+}
+
+img {
+    border: 0;
+    height: auto;
+    pointer-events: none;
+    vertical-align: middle;
+    width: 100%;
+}
+
+picture {
+    display: block;
+}
+
+iframe {
+    width: 100%;
+}
+
+ul,
+ol,
+li {
+    font-size: 0;
+    list-style: none;
+}
+
+form {
+
+    label,
+    span,
+    input {
+
+        //スマホのとき一瞬うつるタッチハイライトを消す
+        @media (hover: none) {
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        }
+    }
+}
+
+/*===============================================
+reCAPTCHAのバッジを非表示にする
+===============================================*/
+.grecaptcha-badge {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+}

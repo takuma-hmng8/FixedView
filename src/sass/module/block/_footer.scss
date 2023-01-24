@@ -1,0 +1,10 @@
+@use "../../global"as *;
+
+/*===============================================
+footer
+===============================================*/
+.bl_footerCopyright {
+    display: block;
+    font-size: $fontsize-2;
+    text-align: center;
+}
