@@ -13,7 +13,10 @@ export const fixedView = () => {
    const VIEWTARGET = document.getElementById("js_fixedView");
    const SCENES = [...VIEWTARGET.getElementsByClassName("js_scene")];
    const BUTTONS = [...VIEWTARGET.getElementsByClassName("js_button")];
-
+   /*===============================================
+	無限スクロールの場合
+	===============================================*/
+   const isInfinitScroll = false;
    /*===============================================
 	シーンの高さを設定する
 	===============================================*/
@@ -355,11 +358,20 @@ export const fixedView = () => {
             //順向きのシーントランジション
             wheelPreventSwitch();
             if (wheelState.scenePhase === SCENES.length - 1) {
-               //ラストシーンの場合、threshold分pos移動
-               sceneSwitch(SCENES[wheelState.scenePhase], {
-                  isInviewAnim: true,
-                  isEnd: true,
-               });
+               if (!isInfinitScroll) {
+                  //ラストシーンの場合、threshold分pos移動
+                  sceneSwitch(SCENES[wheelState.scenePhase], {
+                     isInviewAnim: true,
+                     isEnd: true,
+                  });
+               } else {
+                  sceneTransitonCallBack({
+                     currentTarget: SCENES[wheelState.scenePhase],
+                     nextTarget: SCENES[0],
+                     isForward: true,
+                     isWheel: true,
+                  });
+               }
             } else {
                sceneTransitonCallBack({
                   currentTarget: SCENES[wheelState.scenePhase],
@@ -372,11 +384,19 @@ export const fixedView = () => {
             //逆向きのシーントランジション
             wheelPreventSwitch();
             if (wheelState.scenePhase === 0) {
-               //ファーストシーンの場合、threshold分pos移動
-               sceneSwitch(SCENES[wheelState.scenePhase], {
-                  isInviewAnim: true,
-                  isFirst: true,
-               });
+               if (!isInfinitScroll) {
+                  //ファーストシーンの場合、threshold分pos移動
+                  sceneSwitch(SCENES[wheelState.scenePhase], {
+                     isInviewAnim: true,
+                     isFirst: true,
+                  });
+               } else {
+                  sceneTransitonCallBack({
+                     currentTarget: SCENES[wheelState.scenePhase],
+                     nextTarget: SCENES[SCENES.length - 1],
+                     isWheel: true,
+                  });
+               }
             } else {
                sceneTransitonCallBack({
                   currentTarget: SCENES[wheelState.scenePhase],
@@ -398,13 +418,13 @@ export const fixedView = () => {
       e.stopPropagation();
       e.stopImmediatePropagation();
       //scrollイベント中とボタンからのスクロール中は呼び出さない
-      wheelState.isWheeling = true;
       if (
          scrollState.isScrolling === true ||
          buttonState.isButtonScrolling === true
       ) {
          return;
       }
+      wheelState.isWheeling = true;
       //rAF
       if (!wheelState.ticking) {
          window.requestAnimationFrame(() => {
@@ -537,9 +557,11 @@ export const fixedView = () => {
                /********************
 					固定スタート
 					********************/
-               switchTriggerState(() => {
-                  sceneSwitch(SCENES[index], { isInviewAnim: true });
-               });
+               if (!isInfinitScroll) {
+                  switchTriggerState(() => {
+                     sceneSwitch(SCENES[index], { isInviewAnim: true });
+                  });
+               }
             } else if (interSectionVal <= 0) {
                /********************
 					順向きでinview
@@ -592,13 +614,13 @@ export const fixedView = () => {
 	********************/
    const handleScrollEvent = () => {
       //wheelイベント中とボタンからのスクロール中は呼び出さない
-      scrollState.isScrolling = true;
       if (
          wheelState.isWheeling === true ||
          buttonState.isButtonScrolling === true
       ) {
          return;
       }
+      scrollState.isScrolling = true;
       //rAF
       if (!scrollState.ticking) {
          window.requestAnimationFrame(() => {
@@ -627,6 +649,6 @@ export const fixedView = () => {
          console.log("resize");
          setSceneHeight();
          handleScrollEvent();
-      }, 1000);
+      }, 800);
    });
 };
