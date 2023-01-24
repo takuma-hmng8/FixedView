@@ -105,4 +105,12 @@ if (topPage) {
 }
 
 //画面固定
-fixedView();
+const VIEWTARGET = document.getElementById("js_fixedView");
+const SCENES = [...VIEWTARGET.getElementsByClassName("js_scene")];
+const BUTTONS = [...VIEWTARGET.getElementsByClassName("js_button")];
+fixedView({
+   scenesTarget: SCENES,
+   buttonsTarget: BUTTONS,
+   isInfinitScroll: true,
+   isMobile: true,
+});

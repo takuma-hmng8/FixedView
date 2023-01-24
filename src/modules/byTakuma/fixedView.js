@@ -6,17 +6,17 @@ gsap.registerPlugin(ScrollToPlugin);
 画面固定
 ===============================================*/
 
-export const fixedView = () => {
+export const fixedView = ({
+   scenesTarget,
+   buttonsTarget,
+   isInfinitScroll,
+   isMobile,
+}) => {
    /*===============================================
 	const
 	===============================================*/
-   const VIEWTARGET = document.getElementById("js_fixedView");
-   const SCENES = [...VIEWTARGET.getElementsByClassName("js_scene")];
-   const BUTTONS = [...VIEWTARGET.getElementsByClassName("js_button")];
-   /*===============================================
-	無限スクロールの場合
-	===============================================*/
-   const isInfinitScroll = false;
+   const SCENES = scenesTarget;
+   const BUTTONS = buttonsTarget;
    /*===============================================
 	シーンの高さを設定する
 	===============================================*/
@@ -181,7 +181,7 @@ export const fixedView = () => {
       return new Promise((resolve) => {
          if (isOut) {
             /********************
-				out
+				outアニメーション
 				********************/
             wheelState.isInviewPrevent = true;
             //次の要素を操作しておく
@@ -208,7 +208,7 @@ export const fixedView = () => {
             }, currentTarget);
          } else {
             /********************
-				in
+				inアニメーション
 				********************/
             gsap.context(() => {
                gsap.to(".js_animTarget", {
@@ -315,6 +315,8 @@ export const fixedView = () => {
       isWheelActive: false,
       scenePhase: "0",
       scrollVol: 0,
+      touchMoveVol: 0,
+      scrollDeltaY: 0,
       scrollVolTimeOutID: 0,
       isInviewPrevent: false,
       isPrevent: false,
@@ -340,9 +342,28 @@ export const fixedView = () => {
          wheelState.isInviewPrevent === false &&
          wheelState.isPrevent === false
       ) {
-         //ホイール量を取得
-         wheelState.scrollVol += e.deltaY;
-         //一定時間を超えるとscrollvolを0に戻す（加算されないようにする）
+         /********************
+			ホイール量を取得
+			********************/
+         if (e.deltaY) {
+            wheelState.scrollVol += e.deltaY;
+            wheelState.scrollDeltaY = e.deltaY;
+         } else if (e.changedTouches[0].screenY) {
+            const sy = e.changedTouches[0].screenY;
+            if (wheelState.touchMoveVol === 0) {
+               wheelState.touchMoveVol = sy;
+               return;
+            }
+            const vol = (wheelState.touchMoveVol - sy) * 5;
+            wheelState.scrollVol += vol;
+            wheelState.scrollDeltaY = vol;
+            wheelState.touchMoveVol = sy;
+         }
+         console.log(wheelState.scrollDeltaY);
+
+         /********************
+			一定時間を超えるとscrollvolを0に戻す（加算されないようにする）
+			********************/
          clearTimeout(wheelState.scrollVolTimeOutID);
          wheelState.scrollVolTimeOutID = setTimeout(() => {
             wheelState.scrollVol = 0;
@@ -350,7 +371,10 @@ export const fixedView = () => {
          /********************
 			スクロールに量応じて慣性アニメーションを加える
 			********************/
-         inertiaAnimation(SCENES[wheelState.scenePhase], e.deltaY);
+         inertiaAnimation(
+            SCENES[wheelState.scenePhase],
+            wheelState.scrollDeltaY
+         );
          /********************
 			閾値を超えたら次のシーンに移動する
 			********************/
@@ -436,8 +460,14 @@ export const fixedView = () => {
       wheelState.isWheeling = false;
    };
 
+   const handleTouchEvent = () => {
+      wheelState.touchMoveVol = 0;
+      wheelState.scrollVol = 0;
+   };
+
    //登録するイベントリスト
    const EVENTARRY = ["touchmove", "wheel"];
+   const TOUCHEVENTARRY = ["touchend", "touchstart"];
 
    //ホイールイベント登録
    const addWheelEvent = (isAdd) => {
@@ -448,6 +478,11 @@ export const fixedView = () => {
                passive: false,
             });
          });
+         if (isMobile) {
+            TOUCHEVENTARRY.forEach((element) => {
+               document.addEventListener(element, handleTouchEvent);
+            });
+         }
       } else {
          wheelState.isWheelActive = false;
          EVENTARRY.forEach((element) => {
@@ -455,6 +490,11 @@ export const fixedView = () => {
                passive: false,
             });
          });
+         if (isMobile) {
+            TOUCHEVENTARRY.forEach((element) => {
+               document.removeEventListener(element, handleTouchEvent);
+            });
+         }
       }
    };
 

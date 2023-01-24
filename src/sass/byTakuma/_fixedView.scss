@@ -25,6 +25,9 @@ fixedView
       align-items: center;
       justify-content: center;
       background-color: #333333;
+      @include mq(sm) {
+         height: calc(var(--fixvh, 1vh) * 100);
+      }
       p {
          color: #fff;
          font-size: 4rem;
@@ -34,7 +37,7 @@ fixedView
 }
 
 /*===============================================
-必須のclass設定
+ボタン
 ===============================================*/
 .bl_fixedView_button {
    position: fixed;
@@ -42,6 +45,10 @@ fixedView
    right: 4rem;
    display: flex;
    z-index: 10;
+   @include mq(sm) {
+      display: block;
+      right: 2.4rem;
+   }
    button {
       width: 4rem;
       height: 4rem;
@@ -53,5 +60,8 @@ fixedView
       align-items: center;
       justify-content: center;
       margin: 0 0.4rem;
+      @include mq(sm) {
+         margin: 1.2rem 0;
+      }
    }
 }
