@@ -12,6 +12,7 @@ export const fixedView = () => {
 	===============================================*/
    const VIEWTARGET = document.getElementById("js_fixedView");
    const SCENES = [...VIEWTARGET.getElementsByClassName("js_scene")];
+   const BUTTONS = [...VIEWTARGET.getElementsByClassName("js_button")];
    //シーンの高さ
    const SCENESHEIGHT = window.innerHeight;
    const THRESHOLD = SCENESHEIGHT * 1;
@@ -50,7 +51,6 @@ export const fixedView = () => {
    /********************
 	シーンの切り替え
 	********************/
-   const INVIEWDURATION = 0.5;
    const sceneSwitch = async (
       target,
       {
@@ -58,17 +58,21 @@ export const fixedView = () => {
          isEnd = false,
          isFirst = false,
          isWheelTrigger = false,
+         isButtonTrigger = false,
       }
    ) => {
+      const INVIEWDURATION = 0.5;
       let scrollToPos = 0;
 
       //トリガーがホイールの場合はscrollイベントのsceneSwitchを発火させない
       if (isWheelTrigger) {
          wheelState.isWheelTrigger = true;
       }
-
-      //ラスト/ファーストへの固定解除の場合に値を変更する
+      if (isButtonTrigger) {
+         buttonState.isButtonTrigger = true;
+      }
       if (isEnd) {
+         //ラスト/ファーストへの固定解除の場合に値を変更する
          //ラストシーンから順向きに固定終了の場合
          scrollToPos = getTargetPos(target, {
             position: "bottom",
@@ -147,8 +151,8 @@ export const fixedView = () => {
    const sceneTransitionAnimation = async ({
       currentTarget,
       nextTarget,
-      isOut,
-      isForward,
+      isOut = false,
+      isForward = false,
    }) => {
       let moveVol = 12;
       let moveY = 0;
@@ -221,8 +225,9 @@ export const fixedView = () => {
    const sceneTransitonCallBack = async ({
       currentTarget,
       nextTarget,
-      isForward,
-      isWheel,
+      isForward = false,
+      isWheel = false,
+      isButton = false,
    }) => {
       await sceneTransitionAnimation({
          currentTarget: currentTarget,
@@ -232,14 +237,62 @@ export const fixedView = () => {
       });
       await sceneSwitch(nextTarget, {
          isWheelTrigger: isWheel,
+         isButtonTrigger: isButton,
       });
       await sceneTransitionAnimation({
          currentTarget: "",
          nextTarget: nextTarget,
-         isOut: false,
          isForward: isForward,
       });
    };
+
+   /*===============================================
+	ボタンイベント
+	===============================================*/
+
+   const buttonState = {
+      isButtonScrolling: false,
+      isButtonTrigger: false,
+   };
+
+   async function handleButtonEvent() {
+      console.log(this.index);
+      buttonState.isButtonScrolling = true;
+
+      if (!wheelState.isWheelActive) {
+         //ホイールがアクティブ状態じゃない※まあボタンがエリア外から呼ばれる場合はないと思うけども
+         await sceneSwitch(SCENES[this.index], {
+            isInviewAnim: true,
+            isButtonTrigger: true,
+         });
+         //出現させる
+         sceneTransitionAnimation({
+            nextTarget: SCENES[this.index],
+         });
+      } else {
+         let direction = false;
+         if (wheelState.scenePhase < this.index) {
+            direction = true;
+         }
+         //ホイールがアクティブ状態
+         await sceneTransitonCallBack({
+            currentTarget: SCENES[wheelState.scenePhase],
+            nextTarget: SCENES[this.index],
+            isForward: direction,
+            isButton: true,
+         });
+      }
+      buttonState.isButtonScrolling = false;
+      console.log("このタイミングで一回だけscrollイベント呼びたいな");
+      handleScrollEvent();
+   }
+
+   BUTTONS.forEach((element, index) => {
+      element.addEventListener("click", {
+         index: index,
+         handleEvent: handleButtonEvent,
+      });
+   });
 
    /*===============================================
 	ホイールイベント（シーンの遷移イベント）
@@ -281,7 +334,6 @@ export const fixedView = () => {
          //一定時間を超えるとscrollvolを0に戻す（加算されないようにする）
          clearTimeout(wheelState.scrollVolTimeOutID);
          wheelState.scrollVolTimeOutID = setTimeout(() => {
-            console.log("vol.も0に戻す");
             wheelState.scrollVol = 0;
          }, wheelState.transitionCanceDur);
          /********************
@@ -321,7 +373,6 @@ export const fixedView = () => {
                sceneTransitonCallBack({
                   currentTarget: SCENES[wheelState.scenePhase],
                   nextTarget: SCENES[wheelState.scenePhase - 1],
-                  isForward: false,
                   isWheel: true,
                });
             }
@@ -332,14 +383,18 @@ export const fixedView = () => {
    /********************
 	ホイールイベントハンドラ
 	********************/
-   function handleWheelEvent(e) {
+
+   const handleWheelEvent = (e) => {
       // スクロールを無効化
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      //scrollイベント中は呼び出さない
+      //scrollイベント中とボタンからのスクロール中は呼び出さない
       wheelState.isWheeling = true;
-      if (scrollState.isScrolling === true) {
+      if (
+         scrollState.isScrolling === true ||
+         buttonState.isButtonScrolling === true
+      ) {
          return;
       }
       //rAF
@@ -351,7 +406,7 @@ export const fixedView = () => {
          wheelState.ticking = true;
       }
       wheelState.isWheeling = false;
-   }
+   };
 
    //登録するイベントリスト
    const EVENTARRY = ["touchmove", "wheel"];
@@ -426,6 +481,15 @@ export const fixedView = () => {
       }, scrollState.correctPosInterval);
    };
 
+   //wheelとbuttonがトリガーになってる場合はスクロールでのtransitionを発火させない
+   const switchTriggerState = (event) => {
+      if (!wheelState.isWheelTrigger && !buttonState.isButtonTrigger) {
+         event();
+      }
+      wheelState.isWheelTrigger = false;
+      buttonState.isButtonTrigger = false;
+   };
+
    //位置を判定して状態のdatasetと、sceneのスイッチを行う。スクロールバーの操作の対策もかねる
    const scrollControl = () => {
       scrollState.viewTop =
@@ -458,73 +522,51 @@ export const fixedView = () => {
                addWheelEvent(true);
             }
 
-            if (interSectionVal <= 0 && index === 0) {
+            if (
+               (interSectionVal <= 0 && index === 0) ||
+               (interSectionVal >= 0 && index === SCENES.length - 1)
+            ) {
                /********************
-					順向きで固定スタート
+					固定スタート
 					********************/
-               //ファーストシーンを表示
-               if (!wheelState.isWheelTrigger) {
+               switchTriggerState(() => {
                   sceneSwitch(SCENES[index], { isInviewAnim: true });
-               }
-               wheelState.isWheelTrigger = false;
-            } else if (interSectionVal >= 0 && index === SCENES.length - 1) {
-               /********************
-					逆向きで固定スタート
-					********************/
-               //ラストシーンを表示
-               if (!wheelState.isWheelTrigger) {
-                  sceneSwitch(SCENES[index], { isInviewAnim: true });
-               }
-               wheelState.isWheelTrigger = false;
+               });
             } else if (interSectionVal <= 0) {
                /********************
-					順向きscrollでinview
+					順向きでinview
 					********************/
-               if (!wheelState.isWheelTrigger) {
+               switchTriggerState(() => {
                   sceneTransitonCallBack({
                      currentTarget: SCENES[index - 1],
                      nextTarget: SCENES[index],
                      isForward: true,
-                     isWheel: false,
                   });
-               }
-               wheelState.isWheelTrigger = false;
+               });
             } else {
                /********************
-					逆向きscrollでinview
+					逆向きでinview
 					********************/
-               if (!wheelState.isWheelTrigger) {
+               switchTriggerState(() => {
                   sceneTransitonCallBack({
                      currentTarget: SCENES[index - 1],
                      nextTarget: SCENES[index],
-                     isForward: false,
-                     isWheel: false,
                   });
-               }
-               wheelState.isWheelTrigger = false;
+               });
             }
             element.dataset.view = "1";
          } else if (element.dataset.view === "1") {
-            if (index === 0 && interSectionVal <= 0) {
+            if (
+               (index === 0 && interSectionVal <= 0) ||
+               (index === SCENES.length - 1 && interSectionVal >= 0)
+            ) {
                /********************
-					逆向きscrollで固定解除
+					固定解除
 					********************/
                if (wheelState.isWheelActive === true) {
+                  //アニメーションさせた要素を元の位置に戻しておく
                   sceneTransitionAnimation({
                      nextTarget: SCENES[index],
-                     isOut: false,
-                  });
-                  //ホイールイベント解除
-                  addWheelEvent(false);
-               }
-            } else if (index === SCENES.length - 1 && interSectionVal >= 0) {
-               /********************
-					順向きscrollで固定解除
-					********************/
-               if (wheelState.isWheelActive === true) {
-                  sceneTransitionAnimation({
-                     nextTarget: SCENES[index],
-                     isOut: false,
                   });
                   //ホイールイベント解除
                   addWheelEvent(false);
@@ -541,9 +583,12 @@ export const fixedView = () => {
 	スクロールイベントハンドラ
 	********************/
    const handleScrollEvent = () => {
-      //wheelイベント中は呼び出さない
+      //wheelイベント中とボタンからのスクロール中は呼び出さない
       scrollState.isScrolling = true;
-      if (wheelState.isWheeling === true) {
+      if (
+         wheelState.isWheeling === true ||
+         buttonState.isButtonScrolling === true
+      ) {
          return;
       }
       //rAF

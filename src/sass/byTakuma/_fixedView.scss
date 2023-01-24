@@ -36,10 +36,22 @@ fixedView
 /*===============================================
 必須のclass設定
 ===============================================*/
-.fixedView_scene {
-   &[data-view="0"] {
-      .fixedView_inner {
-         // visibility: hidden;
-      }
+.bl_fixedView_button {
+   position: fixed;
+   bottom: 4rem;
+   right: 4rem;
+   display: flex;
+   z-index: 10;
+   button {
+      width: 4rem;
+      height: 4rem;
+      background-color: blue;
+      border-radius: 50%;
+      font-size: 2rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 0.4rem;
    }
 }
