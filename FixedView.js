@@ -150,19 +150,6 @@ export class FixedView {
          isOut = false,
          isForward = false,
       }) => {
-         let moveVol = 12;
-         let moveY = 0;
-         let setY = 0;
-         const DURATIONVAL = 0.6;
-
-         if (isForward) {
-            moveY = `${moveVol * -1}rem`;
-            setY = `${moveVol}rem`;
-         } else {
-            moveY = `${moveVol}rem`;
-            setY = `${moveVol * -1}rem`;
-         }
-
          return new Promise((resolve) => {
             if (isOut) {
                /********************
